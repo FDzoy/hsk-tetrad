@@ -1,38 +1,45 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23c63f2a%22/%3E%3Ctext x=%2232%22 y=%2247%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%23fff%22%3E%E5%AD%A6%3C/text%3E%3C/svg%3E"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%228%22 fill=%22%23a5333b%22/%3E%3Ctext x=%2232%22 y=%2247%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%23fff%22%3E%E5%AD%A6%3C/text%3E%3C/svg%3E"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
 <title>Тетрадь репетитора HSK</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans:ital,wght@0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;600;700&family=Onest:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif:wght@600;700&family=Noto+Sans:ital,wght@0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;600;700&family=Onest:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: тетрадь 作业本 в клетку. Каждый уровень HSK — свой цвет туши (青 蓝 紫 红), кисть 毛笔 для печатей и крупных иероглифов, красные пометки учителя только для оценок. */
+/* Layout: тетрадь на рисовой бумаге 宣纸. Каждый уровень HSK — свой традиционный цвет (竹青 бамбук, 黛蓝 индиго, 青莲 лотос, 胭脂 румяна),
+   кисть 毛笔 для печатей и крупных иероглифов, киноварь 朱砂 только для печатей и пометок учителя. Узор 回纹, уголки-рамки и горы тушью — внизу файла. */
 :root{
-  --paper:#edf1eb; --paper-grid:rgba(31,96,68,.055); --sheet:#fcfdfb; --sheet2:#f5f8f4;
-  --ink:#19231e; --ink2:#4d5d55; --ink3:#7d8b84; --line:#d7e1d9; --grid:#a8ccb7; --grid2:#e1ece5;
-  --red:#c63f2a; --red-bg:#fbe7e2; --gold:#a3700f; --gold-bg:#fbf0d9;
-  --l1:#1d7650; --l1-bg:#ddefe4; --l2:#1b6a90; --l2-bg:#dcebf4; --l3:#6650b4; --l3-bg:#ebe6f8; --l4:#c13f2b; --l4-bg:#f9e4de;
+  --paper:#efe8da; --sheet:#fbf7ef; --sheet2:#f4eee2;
+  --ink:#2b2620; --ink2:#5d554b; --ink3:#857b6e; --line:#e3d9c7; --grid:#cdbd9f; --grid2:#ede4d3;
+  --red:#a8343c; --red-bg:#f5e2df; --gold:#8a6424; --gold-bg:#f3e9d2;
+  --l1:#3d7560; --l1-bg:#e0ebe3; --l2:#3a5e8a; --l2-bg:#e1e8f1; --l3:#77588f; --l3-bg:#ece4f1; --l4:#a3414c; --l4-bg:#f4e1e1;
   --lv:var(--l1); --lv-bg:var(--l1-bg);
-  --zh:"Noto Serif SC","Songti SC","SimSun",serif; --brush:"Ma Shan Zheng","KaiTi","STKaiti",serif;
+  --seal:#a5333b; --seal-ink:#fbf3ea; --deco:var(--gold); --mount-a:.06;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .1 0'/%3E%3C/filter%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .3' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .25 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --zh:"Noto Serif SC","Songti SC","SimSun",serif; --brush:"Ma Shan Zheng","KaiTi","STKaiti",serif; --serif:"Noto Serif","Noto Serif SC",Georgia,serif;
   --py:"Noto Sans","Segoe UI",Arial,sans-serif; --ui:"Onest","Segoe UI",system-ui,sans-serif;
-  --shadow:0 1px 2px rgba(20,40,30,.06),0 8px 28px rgba(20,40,30,.07); --lift:0 2px 4px rgba(20,40,30,.07),0 14px 34px rgba(20,40,30,.12);
+  --shadow:0 1px 2px rgba(70,50,25,.06),0 8px 28px rgba(70,50,25,.08); --lift:0 2px 4px rgba(70,50,25,.08),0 14px 34px rgba(70,50,25,.14);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#0d1310; --paper-grid:rgba(120,200,160,.045); --sheet:#141c18; --sheet2:#18221d;
-  --ink:#e3ebe5; --ink2:#a1b2a8; --ink3:#71847a; --line:#25332b; --grid:#2e5a44; --grid2:#1d3127;
-  --red:#ff7a61; --red-bg:#3a1d17; --gold:#e3b45c; --gold-bg:#3a2e14;
-  --l1:#5cc092; --l1-bg:#173022; --l2:#5fb4de; --l2-bg:#13293a; --l3:#a995f2; --l3-bg:#251f3e; --l4:#ff7a61; --l4-bg:#3a1d17;
+  --paper:#151412; --sheet:#1d1b18; --sheet2:#23201c;
+  --ink:#ede5d6; --ink2:#b9ae9d; --ink3:#8c8476; --line:#322d27; --grid:#4d4538; --grid2:#2a2621;
+  --red:#e3797c; --red-bg:#3b2224; --gold:#d8b46c; --gold-bg:#372d1c;
+  --l1:#7cc0a2; --l1-bg:#1c2e26; --l2:#8fb2e3; --l2-bg:#1d2736; --l3:#bba2de; --l3-bg:#2a2334; --l4:#e8898f; --l4-bg:#3a2326;
+  --mount-a:.07;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25); --lift:0 2px 6px rgba(0,0,0,.35),0 16px 36px rgba(0,0,0,.35); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#0d1310; --paper-grid:rgba(120,200,160,.045); --sheet:#141c18; --sheet2:#18221d;
-  --ink:#e3ebe5; --ink2:#a1b2a8; --ink3:#71847a; --line:#25332b; --grid:#2e5a44; --grid2:#1d3127;
-  --red:#ff7a61; --red-bg:#3a1d17; --gold:#e3b45c; --gold-bg:#3a2e14;
-  --l1:#5cc092; --l1-bg:#173022; --l2:#5fb4de; --l2-bg:#13293a; --l3:#a995f2; --l3-bg:#251f3e; --l4:#ff7a61; --l4-bg:#3a1d17;
+  --paper:#151412; --sheet:#1d1b18; --sheet2:#23201c;
+  --ink:#ede5d6; --ink2:#b9ae9d; --ink3:#8c8476; --line:#322d27; --grid:#4d4538; --grid2:#2a2621;
+  --red:#e3797c; --red-bg:#3b2224; --gold:#d8b46c; --gold-bg:#372d1c;
+  --l1:#7cc0a2; --l1-bg:#1c2e26; --l2:#8fb2e3; --l2-bg:#1d2736; --l3:#bba2de; --l3-bg:#2a2334; --l4:#e8898f; --l4-bg:#3a2326;
+  --mount-a:.07;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.25); --lift:0 2px 6px rgba(0,0,0,.35),0 16px 36px rgba(0,0,0,.35); color-scheme:dark}
 body[data-lv="2"],.lv2{--lv:var(--l2);--lv-bg:var(--l2-bg)} body[data-lv="3"],.lv3{--lv:var(--l3);--lv-bg:var(--l3-bg)} body[data-lv="4"],.lv4{--lv:var(--l4);--lv-bg:var(--l4-bg)} .lv1{--lv:var(--l1);--lv-bg:var(--l1-bg)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{font-size:16px}
-body{background-color:var(--paper);background-image:linear-gradient(var(--paper-grid) 1px,transparent 1px),linear-gradient(90deg,var(--paper-grid) 1px,transparent 1px);background-size:28px 28px;color:var(--ink);font-family:var(--ui);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+body{background-color:var(--paper);background-image:var(--tex);background-size:260px 260px;color:var(--ink);font-family:var(--ui);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
 body.present{font-size:1.2rem}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -382,6 +389,103 @@ details.help li{margin:4px 0}
 .msg{font-size:.88rem;background:var(--sheet2);border:1px solid var(--line);border-radius:10px;padding:12px;white-space:pre-wrap;margin:0;max-height:220px;overflow:auto;font-family:var(--ui)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:12px;font-size:.92rem;font-weight:500;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
 
+/* вход и регистрация */
+.modal-box.narrow{width:min(440px,100%)}
+.gbtn{width:100%;justify-content:center;padding:11px 14px;font-size:.97rem}
+.gbtn svg{width:18px;height:18px;flex:none}
+.au-or{display:flex;align-items:center;gap:10px;color:var(--ink3);font-size:.8rem}
+.au-or::before,.au-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.au-f{display:grid;gap:12px}
+.au-go{width:100%;justify-content:center;padding:11px 14px}
+.au-msg{margin:0;font-size:.88rem;color:var(--red);background:var(--red-bg);border-radius:10px;padding:8px 12px}
+.au-msg.ok{color:var(--l1);background:var(--l1-bg)}
+.au-links{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 12px}
+.au-lnk{border:0;background:none;padding:2px 0;font-size:.88rem;color:var(--ink2)}
+.au-lnk b{color:var(--lv)}
+.au-lnk:hover{color:var(--ink)}
+.au-small{margin:0;font-size:.8rem;color:var(--ink3)}
+
+/* ---------- китайская стилистика: 回纹 узор, уголки-рамки, печати 印章, горы тушью ---------- */
+:root{
+  --fret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M0 14.5H16M2 14.5V2H13V11H5V5H10V8' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E");
+  --mount:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300' preserveAspectRatio='none'%3E%3Cpath fill-opacity='.45' d='M0 300V185C70 172 115 128 185 100C238 79 262 128 322 140C382 152 425 92 483 70C532 52 562 108 612 124C682 146 722 100 792 80C852 63 884 120 952 134C1022 149 1080 110 1140 99L1200 104V300Z'/%3E%3Cpath d='M0 300V238C62 224 108 200 170 204C232 208 262 174 332 169C402 164 432 214 502 219C572 224 612 189 682 184C752 179 802 224 882 227C962 230 1012 199 1082 195C1132 192 1170 208 1200 214V300Z'/%3E%3C/svg%3E");
+  --c-tl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath d='M1 25V1H25M6 19V6H19V13H12' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
+  --c-tr:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath transform='matrix(-1 0 0 1 26 0)' d='M1 25V1H25M6 19V6H19V13H12' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
+  --c-bl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath transform='matrix(1 0 0 -1 0 26)' d='M1 25V1H25M6 19V6H19V13H12' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
+  --c-br:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath transform='matrix(-1 0 0 -1 26 26)' d='M1 25V1H25M6 19V6H19V13H12' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
+}
+/* заголовки — книжная антиква, как в старых учебниках */
+h1,h2,h3,.brand b{font-family:var(--serif);letter-spacing:0}
+.hero-txt h1,.hero h1,.me-head h1,.board-who h1{font-weight:700;letter-spacing:-.01em}
+/* горы тушью у нижнего края окна */
+body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(34vh,300px);background:var(--ink);opacity:var(--mount-a);-webkit-mask:var(--mount) center bottom/100% 100% no-repeat;mask:var(--mount) center bottom/100% 100% no-repeat;pointer-events:none;z-index:-1}
+/* шапка с полосой узора 回纹 */
+.top{border-bottom:0;box-shadow:0 1px 0 var(--line)}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;background:var(--deco);opacity:.45;-webkit-mask:var(--fret) left bottom/8px 8px repeat-x;mask:var(--fret) left bottom/8px 8px repeat-x;pointer-events:none}
+.top-in{padding-bottom:14px}
+/* печати 印章: киноварь, двойная рамка */
+.seal{background:var(--seal);color:var(--seal-ink);border-radius:5px;transform:rotate(-4deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3.5px color-mix(in srgb,var(--seal-ink) 60%,transparent)}
+.nav .badge{background:var(--seal);color:var(--seal-ink)}
+.how .brush{width:44px;height:44px;display:grid;place-items:center;background:var(--seal);color:var(--seal-ink);border-radius:6px;font-size:1.7rem;margin-bottom:12px;transform:rotate(-3deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3.5px color-mix(in srgb,var(--seal-ink) 55%,transparent)}
+.how div:nth-child(2) .brush{transform:rotate(2deg)} .how div:nth-child(3) .brush{transform:rotate(-1deg)} .how div:nth-child(4) .brush{transform:rotate(3deg)}
+.lvseal{border-radius:8px;box-shadow:inset 0 0 0 2.5px var(--lv),inset 0 0 0 4px color-mix(in srgb,var(--sheet) 55%,transparent)}
+/* листы: мягче углы, уголки-рамки на главных блоках */
+.sheet{border-radius:14px}
+.lv,.stu,.modal-box{border-radius:14px}
+.btn{border-radius:8px}
+.hero-txt,.wod,.hero{overflow:hidden}
+.hero-txt::before,.wod::before,.hero::before{content:"";position:absolute;inset:9px;pointer-events:none;background:var(--deco);opacity:.5;
+  -webkit-mask:var(--c-tl) left top/24px 24px no-repeat,var(--c-tr) right top/24px 24px no-repeat,var(--c-bl) left bottom/24px 24px no-repeat,var(--c-br) right bottom/24px 24px no-repeat;
+  mask:var(--c-tl) left top/24px 24px no-repeat,var(--c-tr) right top/24px 24px no-repeat,var(--c-bl) left bottom/24px 24px no-repeat,var(--c-br) right bottom/24px 24px no-repeat}
+.hero-txt::after{content:"学";position:absolute;right:-14px;bottom:-58px;font-family:var(--brush);font-size:250px;line-height:1;color:var(--lv);opacity:.07;pointer-events:none}
+.hero-txt>*{position:relative;z-index:1}
+.wod{background:radial-gradient(circle at 50% 38%,var(--lv-bg),transparent 68%),var(--sheet)}
+/* карточки уровней: горы вместо кружка */
+.lv::after{left:0;right:0;bottom:0;width:auto;height:58px;border-radius:0;background:var(--lv);opacity:.13;-webkit-mask:var(--mount) center bottom/100% 100% no-repeat;mask:var(--mount) center bottom/100% 100% no-repeat}
+.lv{padding-bottom:26px}
+/* разделитель-узор под шапкой урока */
+.lesson-head{border-bottom:0}
+.lesson-head::before{content:"";position:absolute;left:24px;right:24px;bottom:0;height:8px;background:var(--lv);opacity:.35;-webkit-mask:var(--fret) left bottom/8px 8px repeat-x;mask:var(--fret) left bottom/8px 8px repeat-x;pointer-events:none;z-index:1}
+.modal{background:rgba(35,25,15,.5)}
+/* анкета при первом входе */
+.onb{max-width:620px;margin:10px auto 0;display:grid;gap:20px}
+.onb-top{display:flex;gap:18px;align-items:center}
+.onb-top h1{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+.onb-top p{margin:4px 0 0;color:var(--ink2)}
+.onb-seal{flex:none;writing-mode:vertical-rl;background:var(--seal);color:var(--seal-ink);font-family:var(--brush);font-size:30px;line-height:1.05;padding:10px 8px;border-radius:6px;transform:rotate(-4deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3.5px color-mix(in srgb,var(--seal-ink) 55%,transparent)}
+.onb-f{display:grid;gap:16px}
+.onb-age{max-width:200px}
+.who{border:0;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.who legend{font-size:.88rem;color:var(--ink2);margin-bottom:6px;padding:0}
+.who-c{position:relative;display:grid;gap:2px;padding:16px 16px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--sheet);cursor:pointer;transition:border-color .15s,background .15s}
+.who-c:hover{border-color:var(--grid)}
+.who-c input{position:absolute;opacity:0;pointer-events:none}
+.who-c .brush{font-size:2rem;line-height:1;color:var(--lv);margin-bottom:6px}
+.who-c b{font-size:1.02rem}
+.who-c small{color:var(--ink2);font-size:.84rem;line-height:1.35}
+.who-c:has(input:checked){border-color:var(--lv);background:var(--lv-bg)}
+.who-c:has(input:focus-visible){outline:2px solid var(--lv);outline-offset:2px}
+.kid-h{font-size:1.5rem}
+/* пользователи и роли */
+.usr-bar{display:grid;gap:10px}
+.usr-f{display:flex;gap:6px;flex-wrap:wrap}
+.usr-f .chip span{font-variant-numeric:tabular-nums;opacity:.75}
+.usr-q{font-size:.98rem;padding:9px 12px}
+.usr-list{display:grid;gap:10px}
+.usr{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px 18px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--sheet);box-shadow:var(--shadow)}
+.usr-main{display:flex;gap:12px;align-items:center;min-width:0}
+.usr-txt{min-width:0;display:grid;gap:1px}
+.usr-txt b{font-size:1.02rem}
+.usr-txt small{color:var(--ink3);font-size:.82rem;overflow-wrap:anywhere}
+.usr-role select,.usr-kids select{border:1px solid var(--line);background:var(--sheet);border-radius:9px;padding:7px 9px;color:var(--ink);font-size:.92rem;width:100%}
+.usr-role select:disabled{opacity:.7}
+.usr-kids{grid-column:1 / -1;display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;padding-top:10px;border-top:1px dashed var(--line)}
+.usr-kids select{width:auto;min-width:200px}
+.kid{display:inline-flex;align-items:center;gap:4px;background:var(--lv-bg);color:var(--lv);font-weight:600;font-size:.86rem;border-radius:999px;padding:3px 4px 3px 11px}
+.kid button{border:0;background:none;color:inherit;font-size:1rem;line-height:1;width:22px;height:22px;border-radius:50%;padding:0}
+.kid button:hover{background:color-mix(in srgb,var(--lv) 15%,transparent)}
+@media (max-width:640px){.who{grid-template-columns:minmax(0,1fr)}.usr{grid-template-columns:minmax(0,1fr)}.onb-top{align-items:flex-start}}
+.toast{border-radius:10px}
 @media (max-width:980px){
   .wrap{grid-template-columns:minmax(0,1fr);gap:14px;padding-block:14px 50px}
   .side{display:none}
@@ -446,7 +550,10 @@ details.help li{margin:4px 0}
 <script src="app.js"></script>
 <script src="app2.js"></script>
 <script src="acc.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
 <script src="app3.js"></script>
+<script src="roles.js"></script>
 <script src="board.js"></script>
 
 </body></html>

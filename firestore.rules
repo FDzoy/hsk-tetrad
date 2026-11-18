@@ -1,0 +1,78 @@
+rules_version = '2';
+// Правила доступа к базе «Тетради HSK».
+// Скопируйте этот файл целиком в Firebase → Firestore Database → Rules и нажмите Publish.
+// Роли: admin — администратор, teacher — преподаватель, student — ученик, parent — родитель ученика.
+// Ученик видит и меняет только своё, родитель — данные привязанных детей (только чтение),
+// преподаватель — всех учеников, администратор — всё и раздаёт роли.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ▼ Почта главного администратора. Замените на свою (можно несколько через запятую).
+    // Если входите по паролю, а не через Google, сначала подтвердите почту по ссылке из письма.
+    function isRootAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['ПОЧТА_АДМИНИСТРАТОРА@gmail.com'];
+    }
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+    function hasRoleDoc() { return signedIn() && exists(/databases/$(database)/documents/roles/$(request.auth.uid)); }
+    function myRole() { return get(/databases/$(database)/documents/roles/$(request.auth.uid)).data; }
+    function isAdmin() { return isRootAdmin() || (hasRoleDoc() && myRole().role == 'admin'); }
+    function isStaff() { return isAdmin() || (hasRoleDoc() && myRole().role == 'teacher'); }
+    function isParentOf(uid) { return hasRoleDoc() && myRole().role == 'parent' && uid in myRole().kids; }
+
+    // По этому документу сайт понимает, что вошёл администратор
+    match /meta/{doc} { allow read, write: if isAdmin(); }
+
+    // Роли. Сам себе человек может выдать только «Ученик» или «Родитель» (один раз, при анкете),
+    // всё остальное меняет администратор.
+    match /roles/{uid} {
+      allow read: if isMe(uid) || isStaff();
+      allow create: if isAdmin()
+        || (isMe(uid) && request.resource.data.role in ['student', 'parent'] && request.resource.data.kids.size() == 0);
+      allow update, delete: if isAdmin();
+    }
+
+    // Анкета: имя, возраст, кто вы, почта
+    match /users/{uid} {
+      allow read: if isMe(uid) || isStaff() || isParentOf(uid);
+      allow create, update: if isMe(uid);
+      allow delete: if isAdmin() || isMe(uid);
+    }
+
+    // Результаты и прогресс ученика
+    match /st/{uid} {
+      allow read: if isMe(uid) || isStaff() || isParentOf(uid);
+      allow create, update: if isMe(uid) || isStaff();
+      allow delete: if isStaff();
+    }
+
+    // Домашние задания: назначает преподаватель, ученик отмечает выполнение
+    match /hw/{uid} {
+      allow read: if isMe(uid) || isStaff() || isParentOf(uid);
+      allow create, update: if isMe(uid) || isStaff();
+      allow delete: if isStaff();
+    }
+
+    // Холсты: ученик пишет на своём, преподаватель — на любом
+    match /board/{uid} {
+      allow read: if isMe(uid) || isStaff() || isParentOf(uid);
+      allow write: if isMe(uid) || isStaff();
+      match /pages/{page} {
+        allow read: if isMe(uid) || isStaff() || isParentOf(uid);
+        allow write: if isMe(uid) || isStaff();
+      }
+    }
+
+    // Подписи учеников в списке преподавателя
+    match /roster/{uid} { allow read, write: if isStaff(); }
+
+    // Материалы к уроку видят все вошедшие, заметки — только преподаватели
+    match /extra/{lesson} {
+      allow read: if signedIn();
+      allow write: if isStaff();
+    }
+    match /notes/{lesson} { allow read, write: if isStaff(); }
+  }
+}

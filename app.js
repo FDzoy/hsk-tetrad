@@ -115,15 +115,19 @@ function bindTop() {
 let curNav = 'home';
 function renderTop() {
   const Acc = A.Acc || { state: 'loading' }, ready = Acc.state === 'ready';
-  const items = [['home', 'Курс'], ['dict', 'Словарь']];
+  const items = Acc.state === 'onboard' ? [] : [['home', 'Курс'], ['dict', 'Словарь']];
   if (ready && Acc.isOwner) items.push(['students', 'Ученики', Acc.pendingCount ? Acc.pendingCount() : 0]);
-  if (ready && !Acc.isOwner) items.push(['me', 'Мой кабинет', Acc.activeCount ? Acc.activeCount() : 0]);
-  if (ready) items.push(['board', 'Холст']);
+  if (ready && Acc.isAdmin) items.push(['users', 'Пользователи']);
+  if (ready && Acc.isParent) items.push(['me', 'Мой ребёнок']);
+  else if (ready && !Acc.isOwner) items.push(['me', 'Мой кабинет', Acc.activeCount ? Acc.activeCount() : 0]);
+  if (ready && !Acc.isParent) items.push(['board', 'Холст']);
   $('#nav').innerHTML = items.map(([k, t, b]) => '<a href="#' + k + '" data-nav="' + k + '"' + (k === curNav ? ' aria-current="page"' : '') + '>' + t + (b ? '<span class="badge">' + b + '</span>' : '') + '</a>').join('');
   const box = $('#acct');
   if (Acc.state === 'loading') box.innerHTML = '';
+  else if (Acc.state === 'onboard') box.innerHTML = '<button class="btn sm" data-signout>Выйти</button>';
+  else if (!ready && Acc.fb) box.innerHTML = '<button class="btn sm pri" data-auth="in">Войти</button>';
   else if (!ready) box.innerHTML = '<span class="acct" title="Войдите в claude.ai и откройте сайт по приглашению преподавателя"><span class="ava">?</span><b>Гость</b></span>';
-  else box.innerHTML = '<a class="acct" href="#' + (Acc.isOwner ? 'students' : 'me') + '">' + ava(Acc.me) + '<b>' + esc((Acc.me && Acc.me.name) || 'Вы') + '</b><span class="role' + (Acc.isOwner ? ' t' : '') + '">' + (Acc.isOwner ? 'Преподаватель' : 'Ученик') + '</span></a>';
+  else box.innerHTML = '<a class="acct" href="#' + (Acc.isOwner ? 'students' : 'me') + '">' + ava(Acc.me) + '<b>' + esc((Acc.me && Acc.me.name) || 'Вы') + '</b><span class="role' + (Acc.isOwner ? ' t' : '') + '">' + ((A.ROLES && A.ROLES[Acc.role]) || (Acc.isOwner ? 'Преподаватель' : 'Ученик')) + '</span></a>';
 }
 function setNav(k) { curNav = k; renderTop(); }
 
@@ -167,17 +171,19 @@ function bindWod() { const b = $('#wod-next'); if (b) b.onclick = () => { wodIdx
 function viewHome() {
   layout(false); setNav('home');
   const Acc = A.Acc || {}, ready = Acc.state === 'ready', name = ready && Acc.me && Acc.me.name;
-  const plan = ready && !Acc.isOwner && Acc.st && Acc.st.plan, PL = plan && findLesson(plan.level, plan.n);
+  const plan = ready && !Acc.isOwner && !Acc.isParent && Acc.st && Acc.st.plan, PL = plan && findLesson(plan.level, plan.n);
   let cta = '<a class="btn pri" href="#hsk' + (S.level || 1) + '">Открыть уроки</a><a class="btn" href="#dict">Словарь</a>';
   if (ready && Acc.isOwner) cta = '<a class="btn pri" href="#students">Ученики · ' + (Acc.students ? Acc.students.length : 0) + '</a><a class="btn" href="#board">Холст</a><a class="btn" href="#hsk' + (S.level || 1) + '">Уроки</a>';
+  else if (ready && Acc.isParent) cta = '<a class="btn pri" href="#me">Успехи ребёнка</a><a class="btn" href="#hsk' + (S.level || 1) + '">Уроки</a><a class="btn" href="#dict">Словарь</a>';
   else if (ready) cta = (PL ? '<a class="btn pri" href="#hsk' + PL.level + '-' + PL.n + '">Продолжить: ' + esc(nameOf(PL)) + '</a>' : '<a class="btn pri" href="#hsk' + (S.level || 1) + '">Открыть уроки</a>') + '<a class="btn" href="#me">Мой кабинет</a><a class="btn" href="#board">Мой холст</a>';
-  const prog = l => { if (!ready || Acc.isOwner) return ''; const ls = lessonsOf(l), d = ls.filter(touched).length; return '<div class="prog" title="Уроков с упражнениями: ' + d + ' из ' + ls.length + '"><i style="width:' + Math.round(d / ls.length * 100) + '%"></i></div>'; };
+  const prog = l => { if (!ready || Acc.isOwner || Acc.isParent) return ''; const ls = lessonsOf(l), d = ls.filter(touched).length; return '<div class="prog" title="Уроков с упражнениями: ' + d + ' из ' + ls.length + '"><i style="width:' + Math.round(d / ls.length * 100) + '%"></i></div>'; };
   const cnt = l => ({ les: lessonsOf(l).length, w: lessonsOf(l).reduce((a, L) => a + L.words.length, 0), g: lessonsOf(l).reduce((a, L) => a + L.gram.length, 0) });
   let h = '<div class="stack"><div class="hero2"><section class="sheet hero-txt"><div class="eyebrow">' + (name ? esc(greet() + ', ' + name) : 'HSK Standard Course · HSK标准教程') + '</div>' +
     '<h1>Тетрадь репетитора <em>HSK</em></h1><p>Все уроки учебника с первого по четвёртый уровень: слова с озвучкой, грамматика по формулам, упражнения, прописи и вопросы для разговора. У каждого ученика свой кабинет и свой холст, а преподаватель видит всех.</p>' +
     '<div class="cta">' + cta + '</div><div class="note"><span class="brush" style="font-size:1.35rem;color:var(--red)">学而时习之</span> — учиться и постоянно повторять. Конфуций</div></section>' +
     '<section class="sheet wod" id="wod">' + wodHtml(true) + '</section></div>';
-  if (A.Acc && A.Acc.state === 'guest' && A.Acc.inViewer) h += '<div class="banner"><b>Вы не вошли в аккаунт.</b> Уроки доступны всем, а кабинет, задания и холст появятся, когда вы откроете сайт, войдя в claude.ai по приглашению преподавателя.</div>';
+  if (A.Acc && A.Acc.state === 'guest' && A.Acc.fb) h += A.Acc.fbError ? '<div class="banner"><b>Вход сейчас недоступен.</b> ' + esc(A.Acc.fbError) + '</div>' : '<div class="banner"><span><b>Хотите свой кабинет?</b> Зарегистрируйтесь через Google или по почте: появятся задания от преподавателя, результаты упражнений и личный холст.</span><button class="btn sm pri" data-auth="up">Зарегистрироваться</button></div>';
+  if (A.Acc && A.Acc.state === 'guest' && A.Acc.inViewer) h +='<div class="banner"><b>Вы не вошли в аккаунт.</b> Уроки доступны всем, а кабинет, задания и холст появятся, когда вы откроете сайт, войдя в claude.ai по приглашению преподавателя.</div>';
   h += '<div class="lv-grid">' + [1, 2, 3, 4].map(l => { const c = cnt(l); return '<a class="lv lv' + l + '" href="#hsk' + l + '"><span class="lvseal">' + LV[l].ch + '</span><b>' + LV[l].name + '</b><small class="zh">' + esc(LV[l].book) + '</small><small>' + esc(LV[l].note) + '</small><span class="meta"><span>' + c.les + ' уроков</span><span>' + c.w + ' слов</span><span>' + c.g + ' тем</span></span>' + prog(l) + '</a>'; }).join('') + '</div>';
   h += '<div class="how"><div><span class="brush">讲</span><b>Объясняйте</b><p>Грамматика разложена на формулы и примеры. Нажмите на иероглиф или пример, чтобы услышать произношение.</p></div>' +
     '<div><span class="brush">练</span><b>Тренируйте</b><p>Тесты, карточки и сборка предложений строятся из материала урока. Результаты учеников сохраняются автоматически.</p></div>' +
@@ -259,6 +265,13 @@ function viewDict() {
 function loadingView(k) { layout(false); setNav(k); $('#main').innerHTML = '<div class="sheet sheet-pad"><p class="note">Проверяю аккаунт…</p></div>'; }
 function needAccount(k) {
   layout(false); setNav(k);
+  const Acc = A.Acc || {};
+  if (Acc.fb) {
+    $('#main').innerHTML = '<div class="sheet sheet-pad"><div class="empty"><span class="brush" style="font-size:3rem;color:var(--red);line-height:1">门</span><b>Войдите, чтобы открыть кабинет</b><span>' +
+      (Acc.fbError ? esc(Acc.fbError) : 'Кабинет, домашние задания и холст доступны после входа. Регистрация занимает минуту: через Google или по почте.') + '</span>' +
+      '<div class="cta" style="justify-content:center"><button class="btn pri" data-auth="up">Зарегистрироваться</button><button class="btn" data-auth="in">Войти</button><a class="btn" href="#home">К урокам</a></div></div></div>';
+    return;
+  }
   $('#main').innerHTML = '<div class="sheet sheet-pad"><div class="empty"><span class="brush" style="font-size:3rem;color:var(--red);line-height:1">门</span><b>Нужен вход в аккаунт</b><span>Кабинет, задания и холст открываются, когда вы заходите на сайт, войдя в claude.ai. Попросите преподавателя пригласить вас по email.</span><a class="btn" href="#home">К урокам</a></div></div>';
 }
 function route() {
@@ -267,18 +280,21 @@ function route() {
   window.scrollTo(0, 0);
   if (TTS.ready && 'speechSynthesis' in window) speechSynthesis.cancel();
   if (A.leaveBoard) A.leaveBoard();
+  if (A.leaveView) { const f = A.leaveView; A.leaveView = null; f(); }
   if (A.Acc) A.Acc.viewFn = null;
   const mn = $('#main'); mn.classList.remove('enter'); void mn.offsetWidth; mn.classList.add('enter');
   clearTimeout(route.t); route.t = setTimeout(() => mn.classList.remove('enter'), 450);
   const Acc = A.Acc || { state: 'loading' };
+  if (Acc.state === 'onboard' && A.onboardView) { layout(false); setNav(''); A.onboardView($('#main')); return; }
   const acc = (k, fn) => { if (Acc.state === 'loading') loadingView(k); else if (Acc.state !== 'ready') needAccount(k); else { layout(false); setNav(k); fn($('#main')); } };
   if ((m = h.match(/^hsk([1-4])-(\d+)(?:-(words|grammar|practice|writing|speaking))?$/))) viewLesson(+m[1], +m[2], m[3]);
   else if ((m = h.match(/^hsk([1-4])$/))) viewLevel(+m[1]);
   else if (h === 'dict') viewDict();
-  else if (h === 'me') acc('me', el => Acc.isOwner ? (location.hash = 'students') : A.cabinet(el));
+  else if (h === 'me') acc('me', el => Acc.isOwner ? (location.hash = 'students') : Acc.isParent ? A.parentView(el) : A.cabinet(el));
+  else if (h === 'users') acc('users', el => Acc.isAdmin ? A.usersView(el) : (location.hash = 'home'));
   else if (h === 'students' || h === 'student') acc('students', el => Acc.isOwner ? (h === 'student' ? A.studentView(el) : A.studentsView(el)) : (location.hash = 'me'));
-  else if (h === 'board') acc('board', el => A.boardView(el));
-  else if (h === 'task') acc('me', el => A.taskView(el));
+  else if (h === 'board') acc('board', el => Acc.isParent ? (location.hash = 'me') : A.boardView(el));
+  else if (h === 'task') acc('me', el => Acc.isParent ? (location.hash = 'me') : A.taskView(el));
   else if ((m = h.match(/^hw-([1-4])-(\d+)-([a-z]+)(?:-(\d{4}))?$/))) { layout(false); setNav(''); A.hwView({ level: +m[1], n: +m[2], tasks: m[3], due: m[4] }, $('#main')); }
   else viewHome();
 }

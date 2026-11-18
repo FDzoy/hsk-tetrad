@@ -2,7 +2,9 @@
 'use strict';
 const A = window.APP, { $, $$, esc, inl, LV, toast, copyText, modal } = A;
 const Acc = A.Acc, EX = A.EX, MON = A.MON;
-const SITE = 'https://claude.ai/artifact/QHxcdhYooppWh4awrzPRqR';
+const ARTIFACT = 'https://claude.ai/artifact/QHxcdhYooppWh4awrzPRqR';
+/* в claude.ai — ссылка на артефакт, на GitHub Pages — на сам сайт */
+const site = () => (Acc.inViewer || (window.claude && window.claude.use) ? ARTIFACT : location.origin + location.pathname);
 const ORDER = 'fvphgbtxs', ST = ['Выдано', 'Сдано', 'Проверено'];
 const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -32,8 +34,8 @@ function message(it, forAccount) {
   const L = A.findLesson(it.level, it.n); if (!L) return '';
   let t = 'Домашнее задание · ' + LV[it.level].name + ', урок ' + it.n + '\n«' + L.t + '» — ' + L.r + '\n' + (it.due ? 'Срок: до ' + human(it.due) + '\n' : '');
   t += '\n' + sortT(it.tasks).split('').map((c, i) => (i + 1) + '. ' + taskLine(c, L)).join('\n') + '\n' + (it.note ? '\nКомментарий: ' + it.note + '\n' : '');
-  if (forAccount) t += '\nЗадание уже в вашем кабинете: ' + SITE + '#me';
-  else { const d = it.due ? '-' + it.due.slice(5, 7) + it.due.slice(8, 10) : ''; t += '\nОткрыть задание: ' + SITE + '#hw-' + it.level + '-' + it.n + '-' + sortT(it.tasks) + d + '\nПосле выполнения скопируйте отчёт внизу страницы и пришлите мне.'; }
+  if (forAccount) t += '\nЗадание уже в вашем кабинете: ' + site() + '#me';
+  else { const d = it.due ? '-' + it.due.slice(5, 7) + it.due.slice(8, 10) : ''; t += '\nОткрыть задание: ' + site() + '#hw-' + it.level + '-' + it.n + '-' + sortT(it.tasks) + d + '\nПосле выполнения скопируйте отчёт внизу страницы и пришлите мне.'; }
   return t;
 }
 
@@ -89,21 +91,22 @@ function kpis(st, items) {
   const lessons = new Set(keys.map(k => k.split(':')[0])).size;
   return '<div class="kpis"><div class="kpi"><b>' + items.filter(x => !x.status).length + '</b><span>заданий к выполнению</span></div><div class="kpi"><b>' + keys.length + '</b><span>упражнений пройдено</span></div><div class="kpi"><b>' + (avg == null ? '—' : avg + '%') + '</b><span>средний результат</span></div><div class="kpi"><b>' + lessons + '</b><span>уроков начато</span></div></div>';
 }
-function stuHw(it) {
+function stuHw(it, ro) {
   const tasks = sortT(it.tasks).split(''), res = it.results || {}, done = tasks.filter(c => res[c]).length, late = it.due && it.due < today() && !it.status;
   return '<div class="hw"><div class="hw-top"><b>' + lessonTitle(it) + '</b><span class="pill s' + (it.status || 0) + '">' + ST[it.status || 0] + '</span>' + (it.due ? '<span class="due' + (late ? ' late' : '') + '">' + (late ? 'просрочено · ' : 'до ') + human(it.due) + '</span>' : '') + '</div>' +
     '<div class="tags">' + tasks.map(c => '<span class="tag' + (res[c] ? ' ok' : '') + '">' + (res[c] ? '✓ ' : '') + EX[c].t + (res[c] && res[c].t ? ' ' + res[c].s + '/' + res[c].t : '') + '</span>').join('') + '</div>' +
     (it.note ? '<p class="hw-note">' + inl(it.note) + '</p>' : '') + (it.feedback ? '<p class="fbk"><b>Преподаватель:</b> ' + inl(it.feedback) + '</p>' : '') +
-    '<div class="hw-act"><button class="btn sm' + (it.status ? '' : ' pri') + '" data-task="' + esc(it.id) + '">' + (it.status ? 'Открыть' : done ? 'Продолжить' : 'Выполнить') + '</button><span class="note">' + done + ' из ' + tasks.length + ' готово</span></div></div>';
+    '<div class="hw-act">' + (ro ? '' : '<button class="btn sm' + (it.status ? '' : ' pri') + '" data-task="' + esc(it.id) + '">' + (it.status ? 'Открыть' : done ? 'Продолжить' : 'Выполнить') + '</button>') + '<span class="note">' + done + ' из ' + tasks.length + ' готово</span></div></div>';
 }
 A.cabinet = function (el) {
   const draw = () => {
     const st = Acc.st || {}, items = Acc.items(Acc.hw), plan = st.plan && A.findLesson(st.plan.level, st.plan.n);
     let h = '<div class="stack">';
-    if (Acc.readOnly) h += '<div class="banner"><b>Сейчас можно только смотреть.</b> Чтобы сохранялись результаты и холст, попросите преподавателя выдать вам доступ «Редактор» в меню «Поделиться».</div>';
+    if (Acc.readOnly) h += Acc.fb ? '<div class="banner"><b>Не получается сохранить.</b> Результаты и холст пока не записываются. Обновите страницу, а если не поможет — напишите преподавателю.</div>' : '<div class="banner"><b>Сейчас можно только смотреть.</b> Чтобы сохранялись результаты и холст, попросите преподавателя выдать вам доступ «Редактор» в меню «Поделиться».</div>';
+    h += A.verifyBanner ? A.verifyBanner() : '';
     h += '<section class="sheet sheet-pad stack"><div class="me-head">' + A.ava(Acc.me, 'lg') + '<div><div class="eyebrow">Личный кабинет</div><h1>' + esc((Acc.me && Acc.me.name) || 'Мой кабинет') + '</h1><p>Здесь ваши задания, результаты и холст. Их видите только вы и ваш преподаватель.</p></div></div>' + kpis(st, items) +
       (plan ? '<div class="banner ' + 'lv' + plan.level + '" style="background:var(--lv-bg);border-color:transparent"><span>Сейчас изучаем: <b style="color:var(--lv)">' + esc(A.nameOf(plan)) + '</b> <span class="zh">' + esc(plan.t) + '</span></span><a class="btn sm pri" href="#hsk' + plan.level + '-' + plan.n + '">Открыть урок</a></div>' : '') +
-      '<div class="cta"><a class="btn pri" href="#board">Мой холст</a><a class="btn" href="#hsk' + (plan ? plan.level : A.S.level || 1) + '">Уроки</a></div></section>';
+      '<div class="cta"><a class="btn pri" href="#board">Мой холст</a><a class="btn" href="#hsk' + (plan ? plan.level : A.S.level || 1) + '">Уроки</a>' + (A.accountBtns ? A.accountBtns() : '') + '</div></section>';
     h += '<section class="sheet sheet-pad stack"><h2>Задания от преподавателя</h2>' + (items.length ? '<div class="hw-list">' + items.map(stuHw).join('') + '</div>' : '<div class="empty"><b>Заданий пока нет</b><span>Когда преподаватель назначит задание, оно появится здесь.</span></div>') + '</section>';
     h += '<section class="sheet sheet-pad stack"><h2>Мои результаты</h2>' + resultsTable(st.results, 30) + '</section></div>';
     el.innerHTML = h;
@@ -156,16 +159,19 @@ function stuStats(s) {
   const avg = keys.length ? Math.round(keys.reduce((a, k) => a + (res[k].t ? res[k].s / res[k].t : 1), 0) / keys.length * 100) : null;
   return { items, active: items.filter(x => !x.status).length, pending: items.filter(x => x.status === 1).length, avg, n: keys.length };
 }
-const inviteHelp = open => '<details class="help"' + (open ? ' open' : '') + '><summary>Как добавить ученика</summary><ol>' +
+const inviteHelp = open => Acc.fb ? '<details class="help"' + (open ? ' open' : '') + '><summary>Как добавить ученика</summary><ol>' +
+  '<li>Отправьте ученику ссылку на сайт: <a href="' + esc(site()) + '">' + esc(site().replace(/^https?:\/\//, '')) + '</a></li>' +
+  '<li>Ученик нажимает «Войти» и регистрируется через Google или по почте.</li>' +
+  '<li>Сразу после входа он появится в этом списке со своим кабинетом и холстом. Имя в списке можно поменять в карточке ученика.</li></ol></details>' : '<details class="help"' + (open ? ' open' : '') + '><summary>Как добавить ученика</summary><ol>' +
   '<li>Нажмите «Поделиться» у этого сайта и пригласите ученика по email.</li><li>Выберите уровень доступа «Редактор»: без него ученик сможет только смотреть, а его результаты и холст не сохранятся.</li>' +
   '<li>Не включайте доступ по публичной ссылке: тогда приглашённые ученики теряют права на запись.</li><li>Ученик открывает сайт, войдя в свой аккаунт claude.ai, и сразу появляется в этом списке со своим кабинетом и холстом.</li></ol></details>';
 A.studentsView = function (el) {
   const draw = () => {
     const ss = Acc.students;
     let h = '<div class="stack"><section class="sheet sheet-pad stack"><div class="me-head">' + A.ava(Acc.me, 'lg') + '<div><div class="eyebrow">Панель преподавателя</div><h1>Ученики · ' + ss.length + '</h1><p>Все зарегистрированные ученики, их задания, результаты и холсты. Ученики видят только своё.</p></div></div>' +
-      '<div class="cta"><button class="btn pri" id="s-hw">Задать ДЗ</button><button class="btn" id="s-board">Моя доска</button><a class="btn" href="#hsk' + (A.S.level || 1) + '">Уроки</a></div>' + (Acc.note ? '<p class="note" style="color:var(--red)">' + esc(Acc.note) + '</p>' : '') + '</section>';
+      '<div class="cta"><button class="btn pri" id="s-hw">Задать ДЗ</button><button class="btn" id="s-board">Моя доска</button><a class="btn" href="#hsk' + (A.S.level || 1) + '">Уроки</a>' + (A.accountBtns ? A.accountBtns() : '') + '</div>' + (Acc.note ? '<p class="note" style="color:var(--red)">' + esc(Acc.note) + '</p>' : '') + '</section>';
     if (!Acc.loaded) h += '<p class="note">Загружаю учеников…</p>';
-    else if (!ss.length) h += '<div class="empty"><span class="brush" style="font-size:3rem;color:var(--red);line-height:1">生</span><b>Пока никто не зарегистрировался</b><span>Пригласите учеников — они появятся здесь, как только откроют сайт под своим аккаунтом.</span></div>';
+    else if (!ss.length) h += '<div class="empty"><span class="brush" style="font-size:3rem;color:var(--red);line-height:1">生</span><b>Пока никто не зарегистрировался</b><span>' + (Acc.fb ? 'Отправьте ученикам ссылку на сайт — они появятся здесь, как только зарегистрируются.' : 'Пригласите учеников — они появятся здесь, как только откроют сайт под своим аккаунтом.') + '</span></div>';
     else h += '<div class="stu-grid">' + ss.map(s => {
       const p = Acc.person(s.uid), x = stuStats(s), live = s.st.lastSeen && Date.now() - s.st.lastSeen < 6e5, last = s.st.recent && s.st.recent[0];
       const pl = s.st.plan && A.findLesson(s.st.plan.level, s.st.plan.n);
@@ -194,7 +200,7 @@ A.studentView = function (el) {
     const s = Acc.map[id];
     if (!s || !s.st) { el.innerHTML = '<div class="sheet sheet-pad"><div class="empty"><b>Ученик не найден</b><a class="btn" href="#students">К списку учеников</a></div></div>'; return; }
     const p = Acc.person(id), x = stuStats(s), st = s.st, tab = A.view.tab || 'hw', pl = st.plan || { level: 1, n: 1 };
-    let h = '<div class="stack"><section class="sheet sheet-pad stack"><div class="me-head">' + A.ava(p, 'lg') + '<div><div class="eyebrow"><a class="lnk" href="#students">← Все ученики</a></div><h1>' + esc(p.name) + '</h1><p>' + (p.real && p.real !== p.name ? 'Аккаунт: ' + esc(p.real) + ' · ' : '') + 'с нами с ' + A.day(st.joined || Date.now()) + ' · был(а) ' + A.ago(st.lastSeen) + '</p></div></div>' + kpis(st, x.items) +
+    let h = '<div class="stack"><section class="sheet sheet-pad stack"><div class="me-head">' + A.ava(p, 'lg') + '<div><div class="eyebrow"><a class="lnk" href="#students">← Все ученики</a></div><h1>' + esc(p.name) + '</h1><p>' + (p.real && p.real !== p.name ? 'Аккаунт: ' + esc(p.real) + ' · ' : '') + (p.email ? 'почта: ' + esc(p.email) + ' · ' : '') + (p.age && A.years ? A.years(p.age) + ' · ' : '') + 'с нами с ' + A.day(st.joined || Date.now()) + ' · был(а) ' + A.ago(st.lastSeen) + '</p></div></div>' + kpis(st, x.items) +
       '<div class="row"><label class="field">Имя в списке<input id="d-alias" value="' + esc((s.roster && s.roster.alias) || '') + '" placeholder="' + esc(p.real || 'Как подписать ученика') + '"></label>' +
       '<label class="field" style="flex:0 1 110px">Уровень<select id="d-l">' + [1, 2, 3, 4].map(l => '<option value="' + l + '"' + (l === pl.level ? ' selected' : '') + '>HSK ' + l + '</option>').join('') + '</select></label>' +
       '<label class="field" style="flex:1 1 220px">Текущий урок<select id="d-n">' + A.lessonsOf(pl.level).map(L => '<option value="' + L.n + '"' + (L.n === pl.n ? ' selected' : '') + '>' + L.n + '. ' + esc(L.t) + '</option>').join('') + '</select></label><button class="btn" id="d-save" style="flex:0 0 auto">Сохранить</button></div>' +
@@ -229,8 +235,8 @@ async function removeStudent(id) {
   try {
     const pages = await Acc.db.doc('board/' + id).collection('pages').get();
     for (const d of pages.docs) await Acc.db.doc('board/' + id).collection('pages').doc(d.id).delete();
-    for (const p of ['board/', 'hw/', 'roster/', 'st/']) await Acc.db.doc(p + id).delete();
-    toast('Ученик удалён из списка. Закройте ему доступ в меню «Поделиться», если нужно');
+    for (const p of ['board/', 'hw/', 'roster/', 'st/'].concat(Acc.fb ? ['users/'] : [])) await Acc.db.doc(p + id).delete();
+    toast(Acc.fb ? 'Ученик удалён из списка. Если он снова войдёт на сайт, то появится здесь заново' : 'Ученик удалён из списка. Закройте ему доступ в меню «Поделиться», если нужно');
   } catch (e) { toast('Не удалось удалить: ' + ((e && e.code) || 'ошибка')); }
   location.hash = 'students';
 }
@@ -259,4 +265,6 @@ A.hwView = function (p, el) {
   }
   list();
 };
+
+A.ui = { kpis, resultsTable, stuHw, safe, lessonTitle };
 })();

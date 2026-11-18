@@ -43,8 +43,9 @@ const Acc = A.Acc = {
   on(f) { this.fns.push(f); }, off(f) { this.fns = this.fns.filter(x => x !== f); },
   emit() { A.renderTop(); if (this.viewFn) { try { this.viewFn(); } catch (e) { console.error(e); } } this.fns.slice().forEach(f => { try { f(); } catch (e) { console.error(e); } }); },
   async init() {
+    const fbOnLocal = new URLSearchParams(location.search).has('fb');
     try {
-      if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+      if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && !fbOnLocal) {
         const as = new URLSearchParams(location.search).get('as') || 'tutor';
         this.local = true; this.db = LocalDB('test'); this.isOwner = as === 'tutor';
         this.uid = this.isOwner ? 'u_tutor' : 'u_' + as;
@@ -54,12 +55,19 @@ const Acc = A.Acc = {
         const [user, db] = await Promise.all([window.claude.use('user').catch(() => null), window.claude.use('db').catch(() => null)]);
         this.user = user; this.db = db;
         if (user) { this.me = await user.me(); this.uid = this.me.id; this.isOwner = !!this.me.isOwner; }
+      } else if (A.FB && A.FB.enabled) {
+        /* GitHub Pages: вход через Google или почту (auth.js), дальше снова this.start() */
+        this.fb = true; A.FB.init(); return;
       }
     } catch (e) { console.error(e); }
     if (!this.db || !this.uid) { this.state = 'guest'; this.emit(); A.route(); return; }
+    this.start();
+  },
+  start() {
     this.state = 'ready';
-    document.body.classList.add(this.isOwner ? 'is-owner' : 'is-student');
-    if (this.isOwner) this.watchAll(); else this.register();
+    document.body.classList.add(this.isOwner ? 'is-owner' : this.isParent ? 'is-parent' : 'is-student');
+    /* преподаватель видит всех учеников, родитель — своих детей (roles.js), ученик — свой кабинет */
+    if (this.isOwner) this.watchAll(); else if (this.isParent) { if (this.watchKids) this.watchKids(); } else this.register();
     this.emit(); A.route();
   },
   async register() {
@@ -70,9 +78,10 @@ const Acc = A.Acc = {
     this.db.doc('hw/' + this.uid).onSnapshot(s => { this.hw = s.exists ? s.data() : null; this.emit(); }, () => {});
   },
   watchAll() {
-    const map = this.map, get = id => map[id] || (map[id] = { uid: id, st: null, hw: null, roster: null });
+    const map = this.map, get = id => map[id] || (map[id] = { uid: id, st: null, hw: null, roster: null, role: null });
     const upd = () => {
-      this.students = Object.values(map).filter(x => x.st && x.uid !== this.uid).sort((a, b) => (b.st.lastSeen || 0) - (a.st.lastSeen || 0));
+      // в списке учеников только роль «Ученик» (или аккаунты без роли — версия claude.ai)
+      this.students = Object.values(map).filter(x => x.st && x.uid !== this.uid && (!x.role || x.role.role === 'student')).sort((a, b) => (b.st.lastSeen || 0) - (a.st.lastSeen || 0));
       this.resolve(this.students.map(s => s.uid)); this.emit();
     };
     const timer = setTimeout(() => { if (!this.loaded) { this.note = 'Список учеников пока не загрузился. Проверьте подключение.'; this.emit(); } }, 10000);
@@ -80,17 +89,17 @@ const Acc = A.Acc = {
       Object.values(map).forEach(x => { x[key] = null; }); s.docs.forEach(d => { get(d.id)[key] = d.data(); });
       if (key === 'st') { this.loaded = true; this.note = ''; clearTimeout(timer); } upd();
     }, e => { this.note = 'Не удалось загрузить учеников (' + ((e && e.code) || 'ошибка') + ').'; this.loaded = true; clearTimeout(timer); this.emit(); });
-    sub('st', 'st'); sub('hw', 'hw'); sub('roster', 'roster');
+    sub('st', 'st'); sub('hw', 'hw'); sub('roster', 'roster'); if (this.fb) sub('roles', 'role');
   },
   async resolve(ids) {
     const need = ids.filter(id => !this.names[id]); if (!need.length) return;
     if (this.local) { need.forEach(id => { this.names[id] = { name: 'Ученик ' + id.slice(2), avatarUrl: '' }; }); return; }
     if (!this.user) return;
-    try { const ps = await this.user.profiles(need); need.forEach(id => { const p = ps[id] || {}; this.names[id] = { name: p.name || '', avatarUrl: p.avatarUrl || '' }; }); this.emit(); } catch (e) {}
+    try { const ps = await this.user.profiles(need); need.forEach(id => { const p = ps[id] || {}; this.names[id] = { name: p.name || '', avatarUrl: p.avatarUrl || '', email: p.email || '', age: p.age || null }; }); this.emit(); } catch (e) {}
   },
   person(uid) {
     const s = this.map[uid] || {}, n = this.names[uid] || {};
-    return { name: (s.roster && s.roster.alias) || n.name || 'Ученик без имени', avatarUrl: n.avatarUrl || '', real: n.name || '' };
+    return { name: (s.roster && s.roster.alias) || n.name || 'Ученик без имени', avatarUrl: n.avatarUrl || '', real: n.name || '', email: n.email || '', age: n.age || null };
   },
   items(hwDoc) { const it = (hwDoc && hwDoc.items) || {}; return Object.keys(it).map(id => Object.assign({ id }, it[id])).filter(x => !x.del).sort((a, b) => (a.status - b.status) || String(a.due || '9').localeCompare(String(b.due || '9')) || (b.created - a.created)); },
   activeCount() { return this.items(this.hw).filter(x => !x.status).length; },
@@ -121,14 +130,14 @@ async function flush(path) {
 
 /* ---------- результаты упражнений ---------- */
 A.onResult = function (L, code, s, t) {
-  if (Acc.state !== 'ready' || Acc.isOwner || Acc.readOnly || !t) return;
+  if (Acc.state !== 'ready' || Acc.isOwner || Acc.isParent || Acc.readOnly || !t) return;
   const key = L.id + ':' + code, now = Date.now(), prev = Acc.st && Acc.st.results && Acc.st.results[key];
   const best = Math.max(prev && prev.b != null ? prev.b : 0, s / t);
   const recent = [{ k: key, s, t, at: now }].concat((Acc.st && Acc.st.recent) || []).slice(0, 40);
   Acc.write('st/' + Acc.uid, { results: { [key]: { s, t, at: now, b: Math.round(best * 100) / 100, n: ((prev && prev.n) || 0) + 1 } }, recent, lastSeen: now });
 };
 A.bestFor = function (L, code) {
-  const r = Acc.state === 'ready' && !Acc.isOwner && Acc.st && Acc.st.results && Acc.st.results[L.id + ':' + code];
+  const r = Acc.state === 'ready' && !Acc.isOwner && !Acc.isParent && Acc.st && Acc.st.results && Acc.st.results[L.id + ':' + code];
   return r ? Math.round((r.b != null ? r.b : r.s / r.t) * 100) : null;
 };
 
